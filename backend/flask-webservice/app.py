@@ -14,6 +14,10 @@ TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 TELEGRAM_API_URL = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/'
 SECRET_TOKEN = os.getenv("TELEGRAM_WEBHOOK_SECRET_TOKEN")
+IBM_ACCESS_TOKEN = os.getenv("IBM_ACCESS_TOKEN")
+IBM_CLOUD_URL = os.getenv("IBM_CLOUD_URL")
+IBM_MODEL_ID = os.getenv("IBM_MODEL_ID")
+IBM_PROJECT_ID = os.getenv("IBM_PROJECT_ID")
 
 # Route to send a message to Telegram
 @app.route('/send_message', methods=['POST'])
@@ -43,8 +47,6 @@ def webhook():
         return "Webhook is ready!", 200
 
     update = request.json
-    print("Full update:", update)  # Debug print
-    
     # Telegram sends updates in this format
     if 'message' in update:
         message = update['message']
@@ -57,13 +59,63 @@ def webhook():
     text = message.get('text')
     chat_id = message.get('chat', {}).get('id')
     user = message.get('from', {}).get('first_name', 'Unknown')
-    
+    performSentimentAnalysis(text)
     if text:
         print(f"Received message from {user}: {text} (chat ID: {chat_id})")
     else:
         print("Message with no text received:", message)
     
     return jsonify({'status': 'ok'}), 200
+
+def performSentimentAnalysis(text):
+
+    url = IBM_CLOUD_URL
+
+    body = {
+        "input": """Analyze the sentiment expressed in the following text related to logistics tracking software. Determine whether the sentiment is positive, negative, or neutral. Return only the sentiment.
+
+    Input: Requested a replacement of the lithium batteries ten days ago, but have not received any response. Your team needs to closely communicate with us if we are to continue doing business.
+    Output: Negative
+
+    Input: I have tested the whole flow and so far seems to be ok.
+    Output: Positive
+
+    Input: Your system keeps on spamming the same email to the customer. Please fix this and ensure this doesn'\''t happen again.
+    Output: Negative
+
+    Input: We have tested the phase 2 of the automated processes. We would like to do a second round of testing next month before signing the UAT.
+    Output: Neutral
+
+    Input: I am receiving duplicate job orders on the system when I search by a job order number.
+    Output:""",
+        "parameters": {
+            "decoding_method": "greedy",
+            "max_new_tokens": 200,
+            "min_new_tokens": 0,
+            "repetition_penalty": 1
+        },
+        "model_id": IBM_MODEL_ID,
+        "project_id":IBM_PROJECT_ID
+    }
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": "Bearer "+IBM_ACCESS_TOKEN
+    }
+
+    response = requests.post(
+        url,
+        headers=headers,
+        json=body
+    )
+
+    if response.status_code != 200:
+        raise Exception("Non-200 response: " + str(response.text))
+
+    data = response.json()
+    print("AI response", data)
+
 
 @app.route('/test', methods=['POST'])
 def test():
