@@ -3,6 +3,7 @@ import requests
 from dotenv import load_dotenv
 import os
 from werkzeug.middleware.proxy_fix import ProxyFix
+from agentController import AgentController
 
 
 load_dotenv()
@@ -57,13 +58,8 @@ def webhook():
         return jsonify({'status': 'ok'}), 200
     
     text = message.get('text')
-    chat_id = message.get('chat', {}).get('id')
-    user = message.get('from', {}).get('first_name', 'Unknown')
-    performSentimentAnalysis(text)
-    if text:
-        print(f"Received message from {user}: {text} (chat ID: {chat_id})")
-    else:
-        print("Message with no text received:", message)
+    agent_controller = AgentController()
+    agent_controller.get_response(text)
     
     return jsonify({'status': 'ok'}), 200
 
