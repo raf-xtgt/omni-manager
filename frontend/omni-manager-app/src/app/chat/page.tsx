@@ -10,14 +10,15 @@ export default function Chat() {
   const [activeView, setActiveView] = useState<"chats" | "messages" | "assistant">("chats");
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [showAssistant, setShowAssistant] = useState(false);
 
   return (
     <div className="p-4 h-full">
       <h1 className="text-2xl font-bold mb-4">Chat</h1>
       
       <div className="flex gap-4 h-[calc(100%-3rem)]">
-        {/* Open Chats Sidebar - always visible */}
-        <div className="w-full md:w-1/4 bg-white rounded-lg shadow">
+        {/* Open Chats Sidebar - reduced width */}
+        <div className="w-full md:w-1/5 bg-white rounded-lg shadow">
           <OpenChats 
             onSelectChannel={setSelectedChannel}
             onSelectChat={(chatId) => {
@@ -25,14 +26,15 @@ export default function Chat() {
               setActiveView("messages");
             }}
             activeView={activeView}
-            setActiveView={setActiveView}
+            setActiveView={setActiveView}  // Simplified this line
             selectedChannel={selectedChannel}
-            selectedChat={selectedChat}  // Add this line
+            selectedChat={selectedChat}
+            onToggleAssistant={() => setShowAssistant(!showAssistant)}
           />
         </div>
         
-        {/* Main Content Area */}
-        <div className="hidden md:block md:w-3/4 bg-white rounded-lg shadow">
+        {/* Main Chat Content Area - adjusted width */}
+        <div className={`${showAssistant ? 'hidden md:block md:w-3/5' : 'w-full md:w-4/5'} bg-white rounded-lg shadow`}>
           {activeView === "chats" && selectedChannel && (
             <ChatMessages 
               channel={selectedChannel}
@@ -46,13 +48,16 @@ export default function Chat() {
               onBack={() => setActiveView("chats")}
             />
           )}
-          
-          {activeView === "assistant" && (
-            <AiAssistant 
-              onBack={() => setActiveView("chats")}
-            />
-          )}
         </div>
+
+        {/* AI Assistant Sidebar - only visible when toggled */}
+        {showAssistant && (
+          <div className="hidden md:block md:w-1/5 bg-white rounded-lg shadow">
+            <AiAssistant 
+              onBack={() => setShowAssistant(false)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

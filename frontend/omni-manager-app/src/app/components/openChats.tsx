@@ -9,7 +9,8 @@ interface OpenChatsProps {
   activeView: "chats" | "messages" | "assistant";
   setActiveView: (view: "chats" | "messages" | "assistant") => void;
   selectedChannel: string | null; 
-  selectedChat: string | null;  // Add this line
+  selectedChat: string | null;  
+  onToggleAssistant: () => void;
 }
 
 export default function OpenChats({
@@ -18,7 +19,8 @@ export default function OpenChats({
   activeView,
   setActiveView,
   selectedChannel,
-  selectedChat
+  selectedChat,
+  onToggleAssistant
 }: OpenChatsProps) {
   // Mock data - in a real app this would come from an API
   const channels = [
@@ -93,13 +95,13 @@ export default function OpenChats({
 
       {/* AI Assistant Button */}
       <div className="p-4 border-t">
-        <button 
-          className="w-full flex items-center justify-center p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={() => setActiveView("assistant")}
-        >
-          <FaRobot className="mr-2" />
-          AI Assistant
-        </button>
+      <button 
+        className="w-full flex items-center justify-center p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        onClick={onToggleAssistant}  // Changed from setActiveView
+      >
+        <FaRobot className="mr-2" />
+        AI Assistant
+      </button>
       </div>
     </div>
   );
