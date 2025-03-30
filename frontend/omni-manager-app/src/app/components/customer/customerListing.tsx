@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AddCustomer from './addCustomer';
+import { CustomerService } from '@/app/services/customerService';
 
 interface Customer {
     name: string;
@@ -14,71 +15,44 @@ interface Customer {
 
 export default function CustomerListing() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [customers, setCustomers] = useState<Customer[]>([
-        {
-          name: "Jane Cooper",
-          company: "Microsoft",
-          phone: "(225) 555-018",
-          email: "jane@microsoft.com",
-          country: "United States",
-          status: "Active"
-        },
-        {
-          name: "Floyd Miles",
-          company: "Yahoo",
-          phone: "(205) 555-0100",
-          email: "floyd@yahoo.com",
-          country: "Kiribati",
-          status: "Inactive"
-        },
-        {
-          name: "Marvin McKinney",
-          company: "Tesla",
-          phone: "(252) 555-0126",
-          email: "marvin@tesla.com",
-          country: "Iran",
-          status: "Active"
-        },
-        {
-          name: "Jerome Bell",
-          company: "Google",
-          phone: "(623) 555-0129",
-          email: "jerome@google.com",
-          country: "Reunion",
-          status: "Active"
-        },
-        {
-          name: "Kathryn Murphy",
-          company: "Microsoft",
-          phone: "(406) 555-0120",
-          email: "kathryn@microsoft.com",
-          country: "Curaçao",
-          status: "Active"
-        },
-        {
-          name: "Jacob Jones",
-          company: "Yahoo",
-          phone: "(208) 555-0112",
-          email: "jacob@yahoo.com",
-          country: "Brazil",
-          status: "Active"
-        },
-        {
-          name: "Kristin Watson",
-          company: "Facebook",
-          phone: "(704) 555-0127",
-          email: "kristin@facebook.com",
-          country: "Åland Islands",
-          status: "Inactive"
-        }
-      ]);
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-      const handleAddCustomer = (newCustomer:any) => {
-        // In a real app, you would add the customer to your state/API here
-        console.log('New customer data:', JSON.stringify(newCustomer, null, 2));
-        // For demo purposes, we'll just log to console
-        // setCustomers([...customers, { ...newCustomer, status: "Active" }]);
-      };
+    // Load customers on component mount
+    useEffect(() => {
+        const fetchCustomers = async () => {
+        try {
+            setLoading(true);
+            const customerList = await CustomerService.listCustomers();
+            setCustomers(customerList);
+        } catch (err) {
+            setError('Failed to load customers');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+        };
+
+        fetchCustomers();
+    }, []);
+
+    const handleAddCustomer = async (newCustomer: any) => {
+        try {
+        setLoading(true);
+        const createdCustomer = await CustomerService.createCustomer(newCustomer);
+        
+        // Update local state with the new customer
+        setCustomers(prev => [...prev, createdCustomer]);
+        
+        console.log('Customer created successfully:', createdCustomer);
+        } catch (err) {
+        setError('Failed to create customer');
+        console.error(err);
+        } finally {
+        setLoading(false);
+        }
+    };
   
       return (
         <div className="bg-white p-4 rounded-lg shadow">
