@@ -23,88 +23,84 @@ class ActionPlanAgent():
         messages = deepcopy(messages)
         url = self.ibm_cloud_url
         body = {
-	        "input": """You are a helpful AI assistant who monitors messages recieved over a CRM portal.
-                Your task is to determine whether the customer is asking something relevant to a logistics software system. You also need to analyze whether the sentiment expressed in the customer message is positive, negative, or neutral.
-                The customer is allowed to:
-                1. Ask questions about the different functionalities of the system.
-                2. Make requests for new features to be added to the system.
-                3. Make complaints about system bugs or downtime or any system related issue affecting their operations.
+            "input": """You are a helpful AI assistant who monitors messages recieved over a CRM portal. You will be given the customer message and the underlying sentiment. If the sentiment is negative, your task is to create a list of actionable steps to alleviate customer pain points.
+            Make sure to use the following chain of thought: \"go over each of the points above and make see if the message lies under this point or not. Then you write some your thoughts about what point is this input relevant to.
+            Your output should follow the format exactly:
+                        
+            \"message\":  This is the message sent by the customer,
+            \"action1\":  Action 1 is a concise summary of the complaint. Use the message and the sentiment as context to create the best possible summary for the team to address the complaint.
+            \"action2\": Action 2 is a short response that informs the customer what steps are being taken to alleviate their pain points.
+                        
 
-                The customer is NOT allowed to:
-                1. Ask questions about anything else other than the logistics software system.
-                2. Ask questions about the staff or confidential company information.
+            Input: \"customer_message\": \"I am receiving duplicate job orders on the system when I search by a job order number.\"
+            \"sentiment\":\"negative\"
+            Output: \"message\":  \"I am receiving duplicate job orders on the system when I search by a job order number.\",
+            \"action1\": \"Bug - Search functionality is returning duplicates.\",
+            \"action2\": \"Noted on the issue, our team is working to rectify it.\",
 
-                Make sure to use the following chain of thought: \"go over each of the points above and make see if the message lies under this point or not. Then you write some your thoughts about what point is this input relevant to.\"
+            Input: \"customer_message\": \"The system has been slow for the last 2 hours. Please check and rectify the issue.\"
+            \"sentiment\":\"negative\"
+            Output: \"message\":  \"The system has been slow for the last 2 hours. Please check and rectify the issue.\",
+            \"action1\": \"Server- System slowness affecting customer business operations\", 
+            \"action2\": \"Noted on the slowness, we will get our admins to have a look at it.\"]
 
-                Your output should follow the format exactly:
-                
-                \"decision\": \"allowed\" or \"not allowed\". Pick one of those. and only write the word.
-                \"sentiment\":\"negative\" or \"postive\". Pick one of those. and only write the word.
-                
-                Input: I am receiving duplicate job orders on the system when I search by a job order number.
-                Output: \"decision\": \"allowed\",
-                \"sentiment\": \"negative\"
+            Input: \"customer_message\": \"There is discrepancy between the job order and delivery reports. I can see some of the draft job orders been marked as ready for delivery. This is a critical bug in the system.\"
+            \"sentiment\":\"negative\"
+            Output: \"message\":  \"There is discrepancy between the job order and delivery reports. I can see some of the draft job orders been marked as ready for delivery. This is a critical bug in the system.\",
+            \"action1\": \"Bug - Discrepancy between the job order and the delivery reports\",
+            \"action2\": \"Noted, we will identify the cause of the discrepancy and inform you. \"
 
-                Input: The system has been slow for the last 2 hours. Please check and rectify the issue.
-                Output: \"decision\": \"allowed\",
-                \"sentiment\": \"negative\"
-
-                Input: Let'\''s have dinner tonight. Do you want me to pick you up? Wear something nice
-                Output:  \"decision\": \"not allowed\",
-                \"sentiment\": \"negative\"
-
-
-                Input: There is discrepancy between the job order and delivery reports. I can see some of the draft job orders been marked as ready for delivery. This is a critical bug in the system.
-                Output:""",
-                "parameters": {
-                    "decoding_method": "greedy",
-                    "max_new_tokens": 200,
-                    "min_new_tokens": 0,
-                    "stop_sequences": ["\n\n"],
-                    "repetition_penalty": 1
-                },
-                "model_id": self.ibm_model_id,
-                "project_id": self.ibm_project_id,
-                "moderations": {
-                    "hap": {
-                        "input": {
-                            "enabled": True,
-                            "threshold": 0.5,
-                            "mask": {
-                                "remove_entity_value": True
-                            }
-                        },
-                        "output": {
-                            "enabled": True,
-                            "threshold": 0.5,
-                            "mask": {
-                                "remove_entity_value": True
-                            }
+            Input: \"customer_message\": \"My listing for job orders is only showing a 100 rows but there should be around 320 of them. Please help check this issue.\"
+            \"sentiment\":\"negative\"
+            Output:""",
+            "parameters": {
+                "decoding_method": "greedy",
+                "max_new_tokens": 200,
+                "min_new_tokens": 0,
+                "stop_sequences": ["\n\n"],
+                "repetition_penalty": 1
+            },
+            "model_id": self.ibm_model_id,
+            "project_id": self.ibm_project_id,
+            "moderations": {
+                "hap": {
+                    "input": {
+                        "enabled": True,
+                        "threshold": 0.5,
+                        "mask": {
+                            "remove_entity_value": True
                         }
                     },
-                    "pii": {
-                        "input": {
-                            "enabled": True,
-                            "threshold": 0.5,
-                            "mask": {
-                                "remove_entity_value": True
-                            }
-                        },
-                        "output": {
-                            "enabled": True,
-                            "threshold": 0.5,
-                            "mask": {
-                                "remove_entity_value": True
-                            }
+                    "output": {
+                        "enabled": True,
+                        "threshold": 0.5,
+                        "mask": {
+                            "remove_entity_value": True
+                        }
+                    }
+                },
+                "pii": {
+                    "input": {
+                        "enabled": True,
+                        "threshold": 0.5,
+                        "mask": {
+                            "remove_entity_value": True
+                        }
+                    },
+                    "output": {
+                        "enabled": True,
+                        "threshold": 0.5,
+                        "mask": {
+                            "remove_entity_value": True
                         }
                     }
                 }
             }
-
+        }
         ai_response = getResponse(body, url, self.ibm_access_token)
         print(ai_response)
-        sanitized_json = self.extract_decision_sentiment(ai_response)        
-        return sanitized_json
+        # sanitized_json = self.extract_decision_sentiment(ai_response)        
+        return ai_response
 
     def extract_decision_sentiment(self, response_json):
         generated_text = response_json.get("results", [{}])[0].get("generated_text", "")

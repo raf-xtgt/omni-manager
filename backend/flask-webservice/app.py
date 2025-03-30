@@ -70,9 +70,6 @@ def webhook():
         return jsonify({'status': 'ok'}), 200
     
     text = message.get('text')
-    agent_controller = AgentController()
-    response = "dummy response"
-    # response = agent_controller.get_response(text)  # Wait for response
     
     # Broadcast the received message to all connected clients
     socketio.emit('new_message', {
@@ -82,6 +79,8 @@ def webhook():
         'chatId': str(message['chat']['id'])  # Assuming chat ID is available
     })
 
+    agent_controller = AgentController()
+    response = agent_controller.get_response(text)
     return jsonify({'status': 'ok', 'response': response}), 200
 
 def performSentimentAnalysis(text):

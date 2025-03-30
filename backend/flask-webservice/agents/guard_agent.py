@@ -117,4 +117,4 @@ class GuardAgent():
             "sentiment": sentiment_match.group(1) if sentiment_match else "unknown"
         }
         
-        return json.dumps(extracted_data, indent=4)
+        return extracted_data  # Return dictionary instead of JSON string
