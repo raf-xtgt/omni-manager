@@ -6,7 +6,7 @@ import { CustomerService } from '@/app/services/customerService';
 
 interface Customer {
     name: string;
-    company: string;
+    org: string;
     phone: string;
     email: string;
     country: string;
@@ -87,7 +87,7 @@ export default function CustomerListing() {
                 {customers.map((customer, index) => (
                   <tr key={index}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{customer.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.company}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.org}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.phone}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{customer.country}</td>

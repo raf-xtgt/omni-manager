@@ -32,6 +32,7 @@ export const CustomerService = {
         status: customerData.status || 'Active',
         userId: user.$id
       };
+      console.log(completeCustomer)
 
       const response = await databases.createDocument(
         DATABASE_ID,
