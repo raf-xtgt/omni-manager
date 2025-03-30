@@ -141,3 +141,4 @@ backend/flask-webservice/FlaskWebServiceVenv
 documentation/AllSteps.md
 backend/flask-webservice/agents/__pycache__
 backend/flask-webservice/__pycache__
+frontend/omni-manager-app/.env
