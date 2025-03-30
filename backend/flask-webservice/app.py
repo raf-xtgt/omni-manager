@@ -5,9 +5,15 @@ import os
 from werkzeug.middleware.proxy_fix import ProxyFix
 from agentController import AgentController
 from flask_socketio import SocketIO, emit
+from flask_cors import CORS
 
 load_dotenv()
 app = Flask(__name__)
+CORS(app, resources={
+    r"/send_message": {
+        "origins": "http://localhost:3000"
+    }
+}, supports_credentials=True)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 socketio = SocketIO(app, 
                    cors_allowed_origins="*",

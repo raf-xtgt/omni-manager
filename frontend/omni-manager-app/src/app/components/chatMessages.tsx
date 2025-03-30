@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { FaArrowLeft, FaPaperPlane, FaEllipsisV } from "react-icons/fa";
 import { io, Socket } from "socket.io-client";
+import { sendMessage } from "../services/chatService";
 
 interface ChatMessage {
   id: number;
@@ -70,7 +71,7 @@ export default function ChatMessages({ chatId, channel, onBack }: ChatMessagesPr
     }
   }, [chatId]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim()) {
       const newMessage: ChatMessage = {
         id: messages.length + 1,
@@ -79,14 +80,25 @@ export default function ChatMessages({ chatId, channel, onBack }: ChatMessagesPr
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       
+      // Optimistically update UI
       setMessages(prev => [...prev, newMessage]);
       setMessage("");
       
-      // In a real app, you would also send this to your backend API
-      // For now, we're just handling incoming messages via WebSocket
+      try {
+        // Send message to backend
+        const result = await sendMessage(message);
+        
+        if (result.error) {
+          // Handle error (you might want to show an error message to the user)
+          console.error('Failed to send message:', result.error);
+          // Optionally: remove the optimistic update or mark it as failed
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+        // Handle error
+      }
     }
   };
-
   // Get chat data
   const chatData = chatId ? {
     name: chatId === "1" ? "John Doe" : chatId === "2" ? "Acme Corp" : "Sarah Smith",
