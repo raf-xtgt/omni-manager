@@ -102,10 +102,10 @@ class GuardAgent():
 
         ai_response = getResponse(body, url, self.ibm_access_token)
         print(ai_response)
-        sanitized_json = self.extract_decision_sentiment(ai_response)        
+        sanitized_json = self.process_response(ai_response)        
         return sanitized_json
 
-    def extract_decision_sentiment(self, response_json):
+    def process_response(self, response_json):
         generated_text = response_json.get("results", [{}])[0].get("generated_text", "")
         
         # Regular expressions to extract decision and sentiment

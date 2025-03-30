@@ -81,6 +81,7 @@ def webhook():
 
     agent_controller = AgentController()
     response = agent_controller.get_response(text)
+    print("ai response", str(response))
     return jsonify({'status': 'ok', 'response': response}), 200
 
 def performSentimentAnalysis(text):
