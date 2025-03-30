@@ -1,6 +1,7 @@
 import { client, account } from '../appwrite';
 import { ID } from 'appwrite';
 import { Databases } from 'appwrite';
+import { v4 as uuidv4 } from 'uuid';
 
 // Initialize the Appwrite Databases service
 const databases = new Databases(client);
@@ -16,7 +17,9 @@ interface Customer {
   email: string;
   country: string;
   address: string;
-  status?: string; // Optional field with default value
+  status?: string;
+  userId?:string;
+  customerId:string;
 }
 
 export const CustomerService = {
@@ -27,10 +30,12 @@ export const CustomerService = {
       if (!user) throw new Error('User not authenticated');
 
       // Add default status if not provided
+      const customerGuid:string = uuidv4()
       const completeCustomer = {
         ...customerData,
         status: customerData.status || 'Active',
-        userId: user.$id
+        userId: user.$id,
+        customerId: customerGuid
       };
       console.log(completeCustomer)
 

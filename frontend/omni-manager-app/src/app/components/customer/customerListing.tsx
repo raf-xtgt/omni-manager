@@ -3,15 +3,7 @@
 import { useState, useEffect } from 'react';
 import AddCustomer from './addCustomer';
 import { CustomerService } from '@/app/services/customerService';
-
-interface Customer {
-    name: string;
-    org: string;
-    phone: string;
-    email: string;
-    country: string;
-    status: 'Active' | 'Inactive';
-  }
+import { Customer } from '@/app/models/customer';
 
 export default function CustomerListing() {
     const [isModalOpen, setIsModalOpen] = useState(false);
