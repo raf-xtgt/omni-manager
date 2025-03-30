@@ -16,15 +16,18 @@ interface CustomerFormData {
   address: string;
 }
 
-export default function AddCustomer({ isOpen, onClose, onSave }: AddCustomerModalProps) {
-  const [formData, setFormData] = useState<CustomerFormData>({
+const initialFormData: CustomerFormData = {
     name: '',
     org: '',
     phone: '',
     email: '',
     country: '',
     address: ''
-  });
+  };
+  
+
+export default function AddCustomer({ isOpen, onClose, onSave }: AddCustomerModalProps) {
+  const [formData, setFormData] = useState<CustomerFormData>(initialFormData);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,7 +40,12 @@ export default function AddCustomer({ isOpen, onClose, onSave }: AddCustomerModa
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
-    onClose();
+    handleClose();
+  };
+
+  const handleClose = () => {
+    setFormData(initialFormData); // Reset form data
+    onClose(); // Close modal
   };
 
   if (!isOpen) return null;
@@ -119,7 +127,7 @@ export default function AddCustomer({ isOpen, onClose, onSave }: AddCustomerModa
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 Cancel
