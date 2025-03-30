@@ -1,3 +1,5 @@
+import CustomerListing from "./components/customer/customerListing";
+
 export default function Home() {
   return (
     <div className="p-4">
@@ -15,6 +17,9 @@ export default function Home() {
           <h2 className="font-semibold">New Messages</h2>
           <p className="text-3xl">23</p>
         </div>
+      </div>
+      <div className="p-4">
+        <CustomerListing />
       </div>
     </div>
   );
