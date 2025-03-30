@@ -9,8 +9,13 @@ from flask_socketio import SocketIO, emit
 load_dotenv()
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-socketio = SocketIO(app, cors_allowed_origins="*")  # Allow all origins for development
+socketio = SocketIO(app, 
+                   cors_allowed_origins="*",
+                   async_mode='gevent',  # or 'eventlet' if you prefer
+                   logger=True,
+                   engineio_logger=True)
 
+                
 # Replace with your bot token and chat ID
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
@@ -60,7 +65,8 @@ def webhook():
     
     text = message.get('text')
     agent_controller = AgentController()
-    response = agent_controller.get_response(text)  # Wait for response
+    response = "dummy response"
+    # response = agent_controller.get_response(text)  # Wait for response
     
     # Broadcast the received message to all connected clients
     socketio.emit('new_message', {
@@ -128,4 +134,4 @@ def test():
     return jsonify({"status": "ok"}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, port=5000, debug=True)

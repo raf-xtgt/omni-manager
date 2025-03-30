@@ -1,8 +1,16 @@
 // components/ChatMessages.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaArrowLeft, FaPaperPlane, FaEllipsisV } from "react-icons/fa";
+import { io, Socket } from "socket.io-client";
+
+interface ChatMessage {
+  id: number;
+  text: string;
+  sender: "me" | "them";
+  time: string;
+}
 
 interface ChatMessagesProps {
   chatId?: string;
@@ -12,25 +20,83 @@ interface ChatMessagesProps {
 
 export default function ChatMessages({ chatId, channel, onBack }: ChatMessagesProps) {
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const socketRef = useRef<Socket | null>(null);
   
-  // Mock data
+  // Initialize WebSocket connection
+  useEffect(() => {
+    console.log("chatId", chatId)
+    // Only connect if we have a chatId (specific conversation)
+    if (chatId) {
+      socketRef.current = io("http://localhost:5000", {
+        // Force WebSocket transport only
+        transports: ["websocket"],
+        // Force protocol version 3 to match Flask-SocketIO
+        forceNew: true,
+        upgrade: false,
+        // Add these additional options for better compatibility
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      })
+      
+      socketRef.current.on("connect", () => {
+        console.log("Connected to WebSocket server");
+      });
+
+      socketRef.current.on("connect_error", (err) => {
+        console.error("Connection error:", err);
+      });
+
+      socketRef.current.on("new_message", (data: { text: string; sender: string; time: string; chatId: string }) => {
+        // Only add message if it's for this chat
+        console.log("new msg received on clientside", data)
+        setMessages(prev => [
+          ...prev,
+          {
+            id: prev.length + 1,
+            text: data.text,
+            sender: "them",
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+        
+      });
+
+      return () => {
+        if (socketRef.current) {
+          socketRef.current.disconnect();
+        }
+      };
+    }
+  }, [chatId]);
+
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      const newMessage: ChatMessage = {
+        id: messages.length + 1,
+        text: message,
+        sender: "me",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      
+      setMessages(prev => [...prev, newMessage]);
+      setMessage("");
+      
+      // In a real app, you would also send this to your backend API
+      // For now, we're just handling incoming messages via WebSocket
+    }
+  };
+
+  // Get chat data
   const chatData = chatId ? {
     name: chatId === "1" ? "John Doe" : chatId === "2" ? "Acme Corp" : "Sarah Smith",
-    messages: [
-      { id: 1, text: "Hello there!", sender: "them", time: "10:30 AM" },
-      { id: 2, text: "Hi! How can I help you today?", sender: "me", time: "10:31 AM" },
-      { id: 3, text: "I have a question about my order", sender: "them", time: "10:32 AM" },
+    messages: messages.length ? messages : [
+      // Default messages if no messages received yet
+      { id: 1, text: "Hello! Start your conversation here.", sender: "them" as const, time: "Now" }
     ]
   } : {
     name: channel === "telegram" ? "Telegram" : channel === "whatsapp" ? "WhatsApp" : "Instagram",
     messages: []
-  };
-
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      // In a real app, this would send to an API
-      setMessage("");
-    }
   };
 
   return (
