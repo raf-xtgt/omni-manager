@@ -4,11 +4,12 @@ from dotenv import load_dotenv
 import os
 from werkzeug.middleware.proxy_fix import ProxyFix
 from agentController import AgentController
-
+from flask_socketio import SocketIO, emit
 
 load_dotenv()
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+socketio = SocketIO(app, cors_allowed_origins="*")  # Allow all origins for development
 
 # Replace with your bot token and chat ID
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -61,6 +62,14 @@ def webhook():
     agent_controller = AgentController()
     response = agent_controller.get_response(text)  # Wait for response
     
+    # Broadcast the received message to all connected clients
+    socketio.emit('new_message', {
+        'text': text,
+        'sender': 'them',
+        'time': message.get('date', 'Now'),  # Use Telegram's date or 'Now'
+        'chatId': str(message['chat']['id'])  # Assuming chat ID is available
+    })
+
     return jsonify({'status': 'ok', 'response': response}), 200
 
 def performSentimentAnalysis(text):
