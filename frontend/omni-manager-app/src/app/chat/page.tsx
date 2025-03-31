@@ -54,6 +54,7 @@ export default function Chat() {
         {showAssistant && (
           <div className="hidden md:block md:w-1/5 bg-white rounded-lg shadow">
             <AiAssistant 
+              chatId={selectedChat ?? undefined}
               onBack={() => setShowAssistant(false)}
             />
           </div>

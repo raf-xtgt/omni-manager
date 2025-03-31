@@ -1,30 +1,75 @@
 // components/AiAssistant.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaArrowLeft, FaRobot, FaPaperPlane } from "react-icons/fa";
+import { io, Socket } from "socket.io-client";
+import { ChatMessage } from "../models/chatMsg";
 
 interface AiAssistantProps {
+  chatId?: string;
+  channel?: string;
   onBack: () => void;
 }
 
-export default function AiAssistant({ onBack }: AiAssistantProps) {
+export default function AiAssistant({ chatId, channel, onBack }: AiAssistantProps) {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! I'm your AI assistant. How can I help you today?", sender: "ai" },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([{ id: Date.now(), text: "Hello! I'm your AI assistant. How can I help you today?", sender: "ai", time:"now" }]);
+  const socketRef = useRef<Socket | null>(null);
+
+
+    // Initialize WebSocket connection
+    // useEffect(() => {
+    //   console.log("chatId", chatId)
+    //   // Only connect if we have a chatId (specific conversation)
+    //   if (chatId) {
+    //     socketRef.current = io("http://localhost:5000", {
+    //       // Force WebSocket transport only
+    //       transports: ["websocket"],
+    //       // Force protocol version 3 to match Flask-SocketIO
+    //       forceNew: true,
+    //       upgrade: false,
+    //       // Add these additional options for better compatibility
+    //       reconnectionAttempts: 5,
+    //       reconnectionDelay: 1000,
+    //     })
+        
+    //     socketRef.current.on("ai_response", (data: { ai_response: any; sender: string; time: string; chatId: string }) => {
+    //       // Only add message if it's for this chat
+    //       console.log("new msg received on clientside", data)
+    //       setMessages(prev => [
+    //         ...prev,
+    //         {
+    //           id: prev.length + 1,
+    //           text: data.ai_response["action1"],
+    //           sender: "them",
+    //           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    //         }
+    //       ]);
+          
+    //     });
+  
+    //     return () => {
+    //       if (socketRef.current) {
+    //         socketRef.current.disconnect();
+    //       }
+    //     };
+    //   }
+    // }, [chatId]);
+  
 
   const handleSendMessage = () => {
     if (message.trim()) {
       // Add user message
-      setMessages(prev => [...prev, { id: Date.now(), text: message, sender: "me" }]);
+      setMessages(prev => [...prev, { id: Date.now(), text: message, sender: "ai", time:"now" }]);
       
       // Simulate AI response
       setTimeout(() => {
         setMessages(prev => [...prev, { 
           id: Date.now(), 
           text: "I'm analyzing your request. Here's what I found...", 
-          sender: "ai" 
+          sender: "ai" ,
+          time: "now"
         }]);
       }, 1000);
       

@@ -5,13 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { FaArrowLeft, FaPaperPlane, FaEllipsisV } from "react-icons/fa";
 import { io, Socket } from "socket.io-client";
 import { sendMessage } from "../services/chatService";
-
-interface ChatMessage {
-  id: number;
-  text: string;
-  sender: "me" | "them";
-  time: string;
-}
+import { ChatMessage } from "../models/chatMsg";
 
 interface ChatMessagesProps {
   chatId?: string;

@@ -82,6 +82,14 @@ def webhook():
     agent_controller = AgentController()
     response = agent_controller.get_response(text)
     print("ai response", str(response))
+    
+    socketio.emit('ai_response', {
+        'response': response,
+        'sender': 'ai',
+        'time': message.get('date', 'Now'),  # Use Telegram's date or 'Now'
+        'chatId': str(message['chat']['id'])  # Assuming chat ID is available
+    })
+
     return jsonify({'status': 'ok', 'response': response}), 200
 
 def performSentimentAnalysis(text):
