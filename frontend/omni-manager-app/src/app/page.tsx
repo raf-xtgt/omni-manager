@@ -2,9 +2,10 @@
 import { useState, useEffect } from "react";
 import { account, ID } from "./appwrite";
 import Home from "./components/home/home";
+import { useUser } from "./context/userContext";
 
 const LoginPage = () => {
-  const [loggedInUser, setLoggedInUser] = useState<any>(null);
+  const { user, setUser } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -18,15 +19,15 @@ const LoginPage = () => {
       const checkSession = async () => {
         try {
           const user = await account.get();
-          setLoggedInUser(user);
+          console.log("logged in user", user)
+          setUser(user)
         } catch (err) {
-          setLoggedInUser(null);
         } finally {
           setCheckingSession(false);
         }
       };
     checkSession();
-  }, []);
+  }, [setUser]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -37,7 +38,8 @@ const LoginPage = () => {
       try {
         const currentUser = await account.get();
         if (currentUser) {
-          setLoggedInUser(currentUser);
+          setUser(user)
+
           return;
         }
       } catch (e) {
@@ -46,7 +48,8 @@ const LoginPage = () => {
       
       // If no active session, create new one
       await account.createEmailPasswordSession(email, password);
-      setLoggedInUser(await account.get());
+      setUser(await account.get());
+
     } catch (err) {
       setError("Invalid email or password");
       console.error(err);
@@ -66,7 +69,6 @@ const LoginPage = () => {
       try {
         const currentUser = await account.get();
         if (currentUser) {
-          setLoggedInUser(currentUser);
           return;
         }
       } catch (e) {
@@ -85,7 +87,6 @@ const LoginPage = () => {
   const logout = async () => {
     try {
       await account.deleteSession("current");
-      setLoggedInUser(null);
     } catch (err) {
       console.error("Logout failed:", err);
     }
@@ -101,7 +102,7 @@ const LoginPage = () => {
   }
 
 
-  if (loggedInUser) {
+  if (user) {
     return <Home />;
   }
 
